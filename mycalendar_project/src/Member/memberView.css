@@ -1,0 +1,46 @@
+/* MemberView.css */
+
+.member-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .member-title {
+    margin-bottom: 20px;
+  }
+  
+  .member-profile {
+    text-align: center;
+  }
+  
+  .member-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+  }
+  
+  .member-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    margin-top: 20px;
+  }
+  
+  .member-table th {
+    text-align: right;
+    padding-right: 12px;
+    border-bottom: 1px solid #eee;
+    width: 120px;
+  }
+  
+  .member-table td {
+    padding-left: 6px;
+    border-bottom: 1px solid #eee;
+  }
+  

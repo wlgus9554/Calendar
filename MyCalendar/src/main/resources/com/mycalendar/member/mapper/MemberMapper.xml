@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycalendar.member.mapper.MemberMapper"> <!-- ✅ namespace 수정 -->
+	
+	<!-- 회원 리스트 -->
+	<select id="memberList" parameterType="map"
+    resultType="com.mycalendar.member.vo.MemberVO">
+	<![CDATA[
+		select email, name, nickName, gender, birth, grade
+		from member
+	]]>
+	</select>
+	<!-- 회원 리스트 조회를 위해 전체 데이터를 불러오는 쿼리문 -->
+	<select id="getTotalRow" resultType="java.lang.Long">
+	    select count(*) from member
+	     <where>
+	        <if test="key != null and word != null">
+	            AND ${key} LIKE '%' || #{word} || '%'
+	        </if>
+	    </where>
+	</select>
+	
+	<!-- 회원 상세보기 -->
+	<select id="view" parameterType="string" resultType="com.mycalendar.member.vo.MemberVO">
+		select 
+		    email, name, nickName, gender, birth, tel, grade, 
+		    city, regDate, last_login, status, image
+		    from member where email = #{email}
+	</select>
+
+
+	
+	<!-- 로그인 -->
+    <select id="login" parameterType="com.mycalendar.member.vo.LoginVO"
+        resultType="com.mycalendar.member.vo.LoginVO">
+	    SELECT 
+	        email, name, image, grade, nickName, password, status
+	    FROM member 
+	    WHERE email = #{email}
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="join" parameterType="com.mycalendar.member.vo.MemberVO">
+	    INSERT INTO member (email, nickName, name, password, birth, gender, tel, city, image, grade)
+	    VALUES (#{email}, #{nickName}, #{name}, #{password}, #{birth}, #{gender}, #{tel}, #{city}, 
+	    #{image, jdbcType=VARCHAR}, #{grade})
+	</insert>
+	
+	<update id="memberUpdate" parameterType="com.mycalendar.member.vo.MemberVO">
+	  update member
+	  <set>
+	    nickName = #{nickName},
+	    name = #{name},
+	    tel = #{tel},
+	    city = #{city},
+	    image = #{image},
+	    <if test="grade != null">
+	      grade = #{grade},
+	    </if>
+	    <if test="status != null">
+	      status = #{status}
+	    </if>
+	  </set>
+	  where email = #{email} and password = #{password}
+	</update>
+
+	
+	<!-- 로그인한 아이디에 비밀번호가 일치하는지 확인하기 위한 쿼리문-->
+	<select id="selectMemberByEmail" parameterType="com.mycalendar.member.vo.MemberVO">
+	  SELECT *
+	  FROM member
+	  WHERE email = #{email}
+	</select>
+	
+	<!-- 회원의 상태를 탈퇴 처리로 하여 회원탈퇴 진행 -->
+	<update id="memberDelete" parameterType="com.mycalendar.member.vo.MemberVO">
+	  update member
+	  set status = #{status, jdbcType=VARCHAR}
+	  where email = #{email, jdbcType=VARCHAR}
+	    and password = #{password, jdbcType=VARCHAR}
+	</update>
+
+	
+	<!-- 마지막 로그인 날짜 갱신-->
+	<update id="updateLastLogin" parameterType="String">
+	  UPDATE member
+	  SET last_login = SYSDATE
+	  WHERE email = #{email}
+	</update>
+
+
+</mapper>

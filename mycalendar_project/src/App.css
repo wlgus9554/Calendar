@@ -1,0 +1,114 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 캘린더 영역만 스타일 */
+.calendar-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  height: auto;
+}
+
+/* 모달 배경 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 창 */
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  min-width: 300px;
+  max-width: 500px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+/* 라이트모드 기본 스타일 */
+.light-mode {
+  background-color: white;
+  color: black;
+}
+
+/* 다크모드 스타일 */
+.dark-mode {
+  background-color: #121212;
+  color: white;
+}
+
+.dark-mode .calendar-wrapper {
+  background-color: #333;
+}
+
+.dark-mode .fc-toolbar-title {
+  color: white;
+}
+
+.dark-mode .fc-daygrid-day {
+  background-color: #444;
+  border-color: #555;
+}
+
+.dark-mode .fc-event {
+  background-color: #ff7e5f;
+  color: white;
+}
+
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+

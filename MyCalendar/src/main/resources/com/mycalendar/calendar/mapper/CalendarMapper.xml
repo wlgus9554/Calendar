@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycalendar.calendar.mapper.CalendarMapper"> <!-- ✅ namespace 수정 -->
+	<select id="CalendarList" resultType="com.mycalendar.calendar.vo.CalendarVO" parameterType="String">
+        SELECT 
+        c.id, c.title, c.start_date, c.end_date, 
+        c.color, m.email, c.all_day
+        FROM calendar c, member m
+        where c.email = #{email, jdbcType=VARCHAR}
+        and (m.email = c.email)
+    </select>
+    <select id="CalendarView" resultType="com.mycalendar.calendar.vo.CalendarVO" parameterType="int">
+    	select id, title, content, start_date, end_date, reg_date, all_day, email, color
+		    from calendar
+		        where id = #{id}
+    </select>
+    <insert id="CalendarWrite" parameterType="com.mycalendar.calendar.vo.CalendarVO">
+    	insert into calendar (id, title, content, start_date, end_date, all_Day, email, color)
+    	values(calendar_seq.nextval, #{title, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR}, #{start_date, jdbcType=TIMESTAMP}, 
+    	#{end_date, jdbcType=TIMESTAMP}, #{all_Day, jdbcType=CHAR}, #{email, jdbcType=VARCHAR}, #{color, jdbcType=VARCHAR} )
+    </insert>
+    <update id="CalendarUpdate" parameterType="com.mycalendar.calendar.vo.CalendarVO">
+	  UPDATE calendar
+	  SET
+	    title = #{title, jdbcType=VARCHAR},
+	    content = #{content, jdbcType=VARCHAR},
+	    start_date = #{start_date, jdbcType=TIMESTAMP},
+	    end_date = #{end_date, jdbcType=TIMESTAMP},
+	    all_Day = #{all_Day, jdbcType=CHAR},
+	    color = #{color, jdbcType=VARCHAR}
+	  WHERE id = #{id, jdbcType=NUMERIC}
+	</update>
+	<delete id="CalendarDelete" parameterType="com.mycalendar.calendar.vo.CalendarVO">
+		Delete  from calendar
+		where id = #{id, jdbcType=NUMERIC}
+	</delete>
+
+    
+</mapper>
