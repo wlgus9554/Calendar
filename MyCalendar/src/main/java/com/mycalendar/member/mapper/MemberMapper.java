@@ -40,4 +40,8 @@ public interface MemberMapper {
 	
 	// 마지막 로그인 날짜 업데이트
 	public Integer updateLastLogin(String email);
+	
+	// 이메일 확인
+	LoginVO findByEmail(String email);
+
 }

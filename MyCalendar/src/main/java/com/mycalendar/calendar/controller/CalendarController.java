@@ -76,6 +76,7 @@ public class CalendarController {
 	public ResponseEntity<?> calendarWrite(@RequestBody CalendarVO vo, HttpSession session){
 		
 		log.info("Calendar Write !!");
+		log.info("📝 등록 요청: {}", vo);
 		// 세션으로 email 가져오기
 		String email = (String) session.getAttribute("email");
 		if (email == null) {
@@ -88,9 +89,6 @@ public class CalendarController {
 	    }
 	    
 		vo.setEmail(email); // 세션에 있는 이메일로 일정 작성자 지정
-		
-		
-		log.info("calendarWrite" + vo);
 		
 		service.CalendarWrite(vo); // service로 넘겨줌
 		

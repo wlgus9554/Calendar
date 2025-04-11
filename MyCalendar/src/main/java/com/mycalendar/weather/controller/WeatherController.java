@@ -46,26 +46,44 @@ public class WeatherController {
     
     // 단기 + 중기 = 통합
     @GetMapping("/weekly")
-    public ResponseEntity<Map<String, Object>> getWeeklyWeather(@RequestParam("email") String email) {
-        WeatherVO region = weatherService.findRegionbyWeather(email);
-        if (region == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Map<String, Object>> getWeeklyWeather(
+        @RequestParam(name = "email", required = false) String email,
+        @RequestParam(name = "city", required = false) String city
+    ) {
+        if (email != null) {
+            WeatherVO region = weatherService.findRegionbyWeather(email);
+            if (region == null) return ResponseEntity.notFound().build();
+
+            List<ShortTermWeatherVO> shortList = apiService.getShortTermWeather(region.getNx(), region.getNy());
+            List<MidTermWeatherVO> midList = apiService.getMidTermWeather(region.getReg_code());
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("shortTerm", shortList);
+            result.put("midTerm", midList);
+            return ResponseEntity.ok(result);
         }
 
-        // 1. 단기예보 호출
-        List<ShortTermWeatherVO> shortList = apiService.getShortTermWeather(region.getNx(), region.getNy());
+        if (city != null) {
+            WeatherVO region = weatherService.findRegionByCity(city);
+            if (region == null) return ResponseEntity.notFound().build();
 
-        // 2. 중기예보 호출
-        List<MidTermWeatherVO> midList = apiService.getMidTermWeather(region.getReg_code());
+            List<ShortTermWeatherVO> shortList = apiService.getShortTermWeather(region.getNx(), region.getNy());
+            List<MidTermWeatherVO> midList = apiService.getMidTermWeather(region.getReg_code());
 
-        // 3. 합쳐서 리턴
-        Map<String, Object> result = new HashMap<>();
-        result.put("shortTerm", shortList);
-        result.put("midTerm", midList);
+            Map<String, Object> result = new HashMap<>();
+            result.put("shortTerm", shortList);
+            result.put("midTerm", midList);
+            return ResponseEntity.ok(result);
+        }
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.badRequest().body(Map.of("error", "email 또는 city 파라미터 필요"));
     }
-
+    
+    @GetMapping("/cities")
+    public ResponseEntity<List<String>> getAvailableCities() {
+        List<String> cities = weatherService.getAllCities(); // SELECT DISTINCT city FROM weather
+        return ResponseEntity.ok(cities);
+    }
 
 
 }

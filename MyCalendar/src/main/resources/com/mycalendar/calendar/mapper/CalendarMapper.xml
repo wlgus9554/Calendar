@@ -16,8 +16,12 @@
 		        where id = #{id}
     </select>
     <insert id="CalendarWrite" parameterType="com.mycalendar.calendar.vo.CalendarVO">
+     <!-- ID를 먼저 조회해서 vo.id에 세팅 -->
+	  <selectKey keyProperty="id" resultType="int" order="BEFORE">
+	    SELECT calendar_seq.NEXTVAL FROM dual
+	  </selectKey>
     	insert into calendar (id, title, content, start_date, end_date, all_Day, email, color)
-    	values(calendar_seq.nextval, #{title, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR}, #{start_date, jdbcType=TIMESTAMP}, 
+    	values(#{id}, #{title, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR}, #{start_date, jdbcType=TIMESTAMP}, 
     	#{end_date, jdbcType=TIMESTAMP}, #{all_Day, jdbcType=CHAR}, #{email, jdbcType=VARCHAR}, #{color, jdbcType=VARCHAR} )
     </insert>
     <update id="CalendarUpdate" parameterType="com.mycalendar.calendar.vo.CalendarVO">

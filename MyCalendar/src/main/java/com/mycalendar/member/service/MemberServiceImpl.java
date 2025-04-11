@@ -21,9 +21,15 @@ public class MemberServiceImpl implements MemberService {
 	// 로그인
 	@Override
 	public LoginVO login(LoginVO vo) {
-		// TODO Auto-generated method stub
-		return mapper.login(vo);
+	    LoginVO dbUser = mapper.findByEmail(vo.getEmail());
+
+	    // 사용자 존재 + 비밀번호 일치 여부 확인
+	    if (dbUser != null && dbUser.getPassword().equals(vo.getPassword())) {
+	        return dbUser; // 로그인 성공
+	    }
+	    return null; // 로그인 실패
 	}
+
 
 	// 회원가입
 	@Override

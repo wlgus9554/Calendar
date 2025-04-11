@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // ✅ 추가
+import './memberList.css'; // ✅ 스타일 추가
 
 function MemberList() {
-  const [list, setList] = useState([]);
+  const [memberList, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); // ✅ 초기화
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchList = async () => {
@@ -27,37 +28,31 @@ function MemberList() {
 
   const submit = (email) => {
     console.log("👉 클릭된 이메일:", email);
-    navigate(`/view?email=${encodeURIComponent(email)}`); // ✅ 페이지 이동!
+    // ✅ URL 노출 없이 상태로 전달
+    navigate("/memberView", { state: { email } });
   };
 
   if (loading) return <p>로딩 중...</p>;
   if (error) return <p>에러 발생: {error}</p>;
 
   return (
-    <div>
+    <div className="member-list-container">
       <h2>회원 목록</h2>
       <ul>
-        {list.map(vo => (
-          <li key={vo.email} onClick={() => submit(vo.email)}>
-            {vo.name} ({vo.email}/{vo.birth?.slice(0, 10)})
+        {memberList.map(vo => (
+          <li
+            key={vo.email}
+            className="member-item"
+            onClick={() => submit(vo.email)}
+          >
+            {vo.name} ({vo.email} / {vo.birth?.slice(0, 10)})
           </li>
         ))}
       </ul>
-      {/* 🔙 이전으로 버튼 */}
-      <div style={{ marginTop: '30px' }}>
-            <button
-              onClick={() => navigate(-1)}
-              style={{
-                padding: '8px 20px',
-                backgroundColor: '#eee',
-                border: '1px solid #ccc',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
-            >
-              🔙 이전으로
-            </button>
-          </div>
+
+      <button onClick={() => navigate(-1)} className="back-button">
+        🔙 이전으로
+      </button>
     </div>
   );
 }

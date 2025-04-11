@@ -88,6 +88,11 @@
 	  SET last_login = SYSDATE
 	  WHERE email = #{email}
 	</update>
+	
+	<select id="findByEmail" parameterType="String" resultType="com.mycalendar.member.vo.LoginVO">
+	    SELECT * FROM member WHERE email = #{email}
+	</select>
+
 
 
 </mapper>

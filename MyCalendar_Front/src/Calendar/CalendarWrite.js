@@ -1,24 +1,39 @@
 import React, { useState } from 'react';
+import './CalendarWrite.css';
 
-const toDatetimeLocal = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toISOString().slice(0, 16); // 'YYYY-MM-DDTHH:mm'
-  };
+const toDatetimeLocal = (dateObj) => {
+  const offset = dateObj.getTimezoneOffset() * 60000;
+  const localDate = new Date(dateObj.getTime() - offset);
+  return localDate.toISOString().slice(0, 16);
+};
 
 const CalendarWrite = ({ date, onClose, onSave }) => {
+  // 현재 시각
+  const now = new Date();
+
+  // ① 사용자가 날짜를 클릭했을 경우: 해당 날짜 + 현재 시간으로 보정
+  let baseDate;
+  if (date) {
+    const clickedDate = new Date(date); // 예: 2025-04-11
+    clickedDate.setHours(now.getHours(), now.getMinutes(), 0, 0); // 현재 시각 적용
+    baseDate = clickedDate;
+  } else {
+    baseDate = now;
+  }
+
+  const oneHourLater = new Date(baseDate.getTime() + 60 * 60 * 1000); // +1시간
+
   const [vo, setVo] = useState({
     title: '',
     content: '',
-    start_date: toDatetimeLocal(date),
-    end_date: toDatetimeLocal(date),
+    start_date: toDatetimeLocal(baseDate),
+    end_date: toDatetimeLocal(oneHourLater),
     all_Day: 'N',
     color: '#3788d8'
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    // 체크박스는 Y/N으로 처리
     if (type === 'checkbox') {
       setVo({ ...vo, [name]: checked ? 'Y' : 'N' });
     } else {
@@ -31,31 +46,30 @@ const CalendarWrite = ({ date, onClose, onSave }) => {
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: '30%', left: '30%', background: 'white',
-      padding: '20px', border: '1px solid #ccc', borderRadius: '8px', zIndex: 9999
-    }}>
+    <div className="calendar-write-modal">
       <h3>일정 등록</h3>
-      <input name="title" placeholder="제목" value={vo.title} onChange={handleChange} /><br />
-      <textarea name="content" placeholder="내용" value={vo.content} onChange={handleChange} /><br />
-      <input type="datetime-local" name="start_date" value={vo.start_date} onChange={handleChange} /> ~
-      <input type="datetime-local" name="end_date" value={vo.end_date} onChange={handleChange} /><br />
-      <label>
-        하루 종일 
+      <input name="title" placeholder="제목" value={vo.title} onChange={handleChange} />
+      <textarea name="content" placeholder="내용" value={vo.content} onChange={handleChange} />
+      <input type="datetime-local" name="start_date" value={vo.start_date} onChange={handleChange} />
+      <input type="datetime-local" name="end_date" value={vo.end_date} min={vo.start_date} onChange={handleChange} />
+
+      <div className="checkbox-row">
         <input
           type="checkbox"
           name="all_Day"
-          checked={vo.all_Day === 'Y'} // Y일 때만 체크됨
+          checked={vo.all_Day === 'Y'}
           onChange={handleChange}
         />
-      </label><br />
-      <label>
-        색상 선택 
-        <input type="color" name="color" value={vo.color} onChange={handleChange} />
-      </label><br /><br />
+        <label htmlFor="all_Day">하루 종일</label>
+      </div>
 
-      <button onClick={handleSubmit}>등록</button>
-      <button onClick={onClose}>취소</button>
+      <label>색상 선택</label>
+      <input type="color" name="color" value={vo.color} onChange={handleChange} />
+
+      <div className="button-row">
+        <button onClick={handleSubmit}>등록</button>
+        <button onClick={onClose}>취소</button>
+      </div>
     </div>
   );
 };

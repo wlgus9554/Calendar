@@ -1,5 +1,7 @@
 package com.mycalendar.weather.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,5 +16,17 @@ public class WeatherServiceImpl implements WeatherService {
 
 	public WeatherVO findRegionbyWeather(String email){
 		return mapper.findRegionbyWeather(email);
+	}
+
+	@Override
+	public WeatherVO findRegionByCity(String city) {
+		// TODO Auto-generated method stub
+		return mapper.findRegionByCity(city);
+	}
+
+	@Override
+	public List<String> getAllCities() {
+		// TODO Auto-generated method stub
+		return mapper.getAllCities();
 	}
 }

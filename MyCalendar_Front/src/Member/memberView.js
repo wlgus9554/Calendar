@@ -1,46 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // ✅ navigate 사용
+import { useLocation, useNavigate } from 'react-router-dom';
 import './memberView.css';
 
 function MemberView() {
-  const [view, setView] = useState(null); // 배열에서 객체로 변경
+  const [memberView, setView] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
-  const [mode, setMode] = useState(""); // "edit" or "delete"
+  const [mode, setMode] = useState("");
 
-  const navigate = useNavigate(); // ✅ 히스토리 뒤로가기용
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const email = new URLSearchParams(window.location.search).get("email");
+  // ✅ 로그인 정보
+  const loginEmail = localStorage.getItem("loginEmail");
+  const loginGrade = localStorage.getItem("loginGrade");
+  const isAdmin = loginGrade === "admin";
+
+  // ✅ 전달된 이메일
+  const targetEmail = location.state?.email || loginEmail;
 
   useEffect(() => {
+    // ❌ 로그인 안 됐을 때
+    if (!loginEmail) {
+      alert("로그인이 필요합니다.");
+      return navigate("/login");
+    }
+  
+    // ❌ 일반 사용자가 타인 정보 접근 시
+    if (!isAdmin && targetEmail !== loginEmail) {
+      alert("본인의 정보만 조회할 수 있습니다.");
+      return navigate("/");
+    }
+  
+    // ✅ 데이터 불러오기
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/member/view.do?email=${email}`);
-        console.log("📦 받은 회원 데이터:", response.data); // 🔍 추가
-        setView(response.data);  // view는 이제 객체
+        const response = await axios.get(`http://localhost:8080/api/member/view.do?email=${targetEmail}`);
+        setView(response.data);
       } catch (err) {
         setError(err.message || "에러 발생");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, [email]);
+  }, [targetEmail, loginEmail, isAdmin, navigate]);
+  
 
   const handlePasswordCheck = async () => {
     try {
       const res = await axios.post("http://localhost:8080/api/member/checkPassword.do", {
-        email,
+        email: targetEmail,
         password: inputPassword,
       });
 
       if (res.data === true) {
-        window.location.href = `/memberUpdate?email=${email}&password=${inputPassword}`;
+        navigate(`/memberUpdate`, { state: { email: targetEmail, password: inputPassword } });
       } else {
         alert("❌ 비밀번호가 일치하지 않습니다.");
       }
@@ -60,7 +80,7 @@ function MemberView() {
 
     try {
       const res = await axios.post("http://localhost:8080/api/member/memberDelete.do", {
-        email,
+        email: targetEmail,
         password: inputPassword,
       });
 
@@ -84,56 +104,45 @@ function MemberView() {
   return (
     <div className="member-container">
       <h2 className="member-title">회원 상세 정보</h2>
-      {view && (
-        <div key={view.email}>
+      {memberView && (
+        <div key={memberView.email}>
           <div className="member-profile">
-          <img src={`http://localhost:8080${view.image}`} alt="프로필" className="member-image" />
+            <img src={`http://localhost:8080${memberView.image}`} alt="프로필" className="member-image" />
           </div>
 
           <table className="member-table">
             <tbody>
-              <tr><th>이메일</th><td>{view.email}</td></tr>
-              <tr><th>이름</th><td>{view.name}</td></tr>
-              <tr><th>닉네임</th><td>{view.nickName}</td></tr>
-              <tr><th>생년월일</th><td>{view.birth?.slice(0, 10)}</td></tr>
-              <tr><th>성별</th><td>{view.gender}</td></tr>
-              <tr><th>전화번호</th><td>{view.tel}</td></tr>
-              {view.grade === "admin" && (
-                <tr>
-                  <th>등급</th>
-                  <td>{view.grade}</td>
-                </tr>
+              <tr><th>이메일</th><td>{memberView.email}</td></tr>
+              <tr><th>이름</th><td>{memberView.name}</td></tr>
+              <tr><th>닉네임</th><td>{memberView.nickName}</td></tr>
+              <tr><th>생년월일</th><td>{memberView.birth?.slice(0, 10)}</td></tr>
+              <tr><th>성별</th><td>{memberView.gender}</td></tr>
+              <tr><th>전화번호</th><td>{memberView.tel}</td></tr>
+              <tr><th>도시</th><td>{memberView.city}</td></tr>
+              <tr><th>가입일</th><td>{memberView.regDate?.slice(0, 10)}</td></tr>
+              <tr><th>마지막 로그인</th><td>{memberView.last_login?.slice(0, 10)}</td></tr>
+
+              {isAdmin && (
+                <>
+                  <tr><th>등급</th><td>{memberView.grade}</td></tr>
+                  <tr><th>상태</th><td>{memberView.status}</td></tr>
+                </>
               )}
-              <tr><th>도시</th><td>{view.city}</td></tr>
-              <tr><th>가입일</th><td>{view.regDate?.slice(0, 10)}</td></tr>
-              <tr><th>마지막 로그인</th><td>{view.last_login?.slice(0, 10)}</td></tr>
-              <tr><th>상태</th><td>{view.status}</td></tr>
             </tbody>
           </table>
 
-          {/* 수정/탈퇴 버튼 */}
           <div style={{ marginTop: "20px" }}>
-            <button
-              onClick={() => {
-                setMode("edit");
-                setShowPasswordPrompt(true);
-              }}
-            >
+            <button onClick={() => { setMode("edit"); setShowPasswordPrompt(true); }}>
               ✏ 수정하기
             </button>
-
             <button
-              onClick={() => {
-                setMode("delete");
-                setShowPasswordPrompt(true);
-              }}
+              onClick={() => { setMode("delete"); setShowPasswordPrompt(true); }}
               style={{ marginLeft: "10px", color: "red" }}
             >
               🗑 탈퇴하기
             </button>
           </div>
 
-          {/* 비밀번호 입력창 */}
           {showPasswordPrompt && (
             <div style={{ marginTop: '15px' }}>
               <p>비밀번호를 입력하세요:</p>
@@ -155,7 +164,6 @@ function MemberView() {
             </div>
           )}
 
-          {/* 🔙 이전으로 버튼 */}
           <div style={{ marginTop: '30px' }}>
             <button
               onClick={() => navigate(-1)}

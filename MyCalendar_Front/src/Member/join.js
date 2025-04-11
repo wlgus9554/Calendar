@@ -1,15 +1,20 @@
-// Join.js (회원가입 페이지) - 스타일 컴포넌트 적용 버전
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Join.css'; // 👈 스타일 분리
-
+import "react-datepicker/dist/react-datepicker.css";
+import ReactDatePicker from "react-datepicker";
+import { ko } from 'date-fns/locale';
+import { registerLocale } from 'react-datepicker';
+registerLocale('ko', ko);
 
 const Join = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(null);
   const [name, setName] = useState("");
   const [nickName, setNickName] = useState("");
-  const [birth, setBirth] = useState("");
+  const [birth, setBirth] = useState(""); // yyyy-MM-dd 형태
   const [gender, setGender] = useState("");
   const [tel, setTel] = useState("");
   const [city, setCity] = useState("");
@@ -17,6 +22,13 @@ const Join = () => {
   const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
+    if (password !== confirmPassword) {
+      setPasswordError("비밀번호가 일치하지 않습니다.");
+      return;
+    } else {
+      setPasswordError(null);
+    }
+
     const formData = new FormData();
     formData.append("email", email);
     formData.append("password", password);
@@ -33,36 +45,74 @@ const Join = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("회원가입이 완료되었습니다!");
-      window.location.href = "/api/member/memberList.do";
+      window.location.href = "http://localhost:3000";
     } catch (err) {
       console.error(err);
       setError("회원가입 중 오류가 발생했습니다.");
     }
   };
 
+  // 전화번호 자동 하이픈 삽입 함수
+  const formatPhoneNumber = (value) => {
+    const onlyNums = value.replace(/\D/g, '');
+
+    if (onlyNums.length <= 3) return onlyNums;
+    if (onlyNums.length <= 7)
+      return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3)}`;
+    return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(7, 11)}`;
+  };
+
   return (
     <div className="join-container">
       <h2>회원가입</h2>
+
       <div className="form-group">
         <label>아이디</label>
         <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} />
       </div>
+
       <div className="form-group">
         <label>비밀번호</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </div>
+
+      <div className="form-group">
+        <label>비밀번호 확인</label>
+        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+        {passwordError && <p className="error-msg">{passwordError}</p>}
+      </div>
+
       <div className="form-group">
         <label>이름</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
+
       <div className="form-group">
         <label>닉네임</label>
         <input type="text" value={nickName} onChange={(e) => setNickName(e.target.value)} />
       </div>
+
       <div className="form-group">
         <label>생년월일</label>
-        <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} />
+        <ReactDatePicker
+          selected={birth ? new Date(birth) : null}
+          onChange={(date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            setBirth(`${yyyy}-${mm}-${dd}`);
+          }}
+          dateFormat="yyyy-MM-dd"
+          placeholderText="생년월일을 선택하세요"
+          locale="ko"
+          className="form-control"
+          showMonthDropdown
+          showYearDropdown
+          dropdownMode="select"
+          maxDate={new Date()} // 👈 오늘까지만 선택 가능하게 설정
+        />
       </div>
+
       <div className="form-group">
         <label>성별</label>
         <div className="radio-group">
@@ -76,10 +126,17 @@ const Join = () => {
           </label>
         </div>
       </div>
+
       <div className="form-group">
         <label>전화번호</label>
-        <input type="text" value={tel} onChange={(e) => setTel(e.target.value)} />
+        <input
+          type="text"
+          value={tel}
+          onChange={(e) => setTel(formatPhoneNumber(e.target.value))}
+          maxLength={13} // 010-1234-5678 최대 길이 제한
+        />
       </div>
+
       <div className="form-group">
         <label>지역</label>
         <select value={city} onChange={(e) => setCity(e.target.value)}>
@@ -98,10 +155,12 @@ const Join = () => {
           <option value="제주도">제주도</option>
         </select>
       </div>
+
       <div className="form-group">
         <label>사진</label>
         <input type="file" name="imageFile" onChange={(e) => setImage(e.target.files[0])} />
       </div>
+
       <button className="submit-btn" onClick={handleSubmit}>가입하기</button>
       {error && <p className="error-msg">{error}</p>}
     </div>

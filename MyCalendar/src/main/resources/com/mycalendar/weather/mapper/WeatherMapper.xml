@@ -10,5 +10,15 @@
 	    JOIN weather w ON m.city = w.city
 	    WHERE m.email = #{email}
 	</select>
+	
+	<select id="findRegionByCity" resultType="com.mycalendar.weather.vo.WeatherVO">
+	  SELECT * FROM weather WHERE city = #{city}
+	</select>
+	
+	<select id="getAllCities" resultType="String">
+	  SELECT DISTINCT city FROM weather
+	</select>
+
+
 
 </mapper>

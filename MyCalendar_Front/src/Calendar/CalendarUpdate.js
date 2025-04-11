@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// ✅ KST 기준 'yyyy-MM-ddTHH:mm' 포맷으로 변환
 const toDatetimeLocal = (dateStr) => {
   const date = new Date(dateStr);
-  return date.toISOString().slice(0, 16); // 'YYYY-MM-DDTHH:mm'
+  const offset = date.getTimezoneOffset() * 60000;
+  const localDate = new Date(date.getTime() - offset);
+  return localDate.toISOString().slice(0, 16); // 'yyyy-MM-ddTHH:mm'
 };
 
 const CalendarUpdate = ({ id, onClose, onUpdate }) => {
   const [vo, setVo] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/calendar/calendarView.do?id=${id}`,{
-        withCredentials: true
+    axios.get(`http://localhost:8080/api/calendar/calendarView.do?id=${id}`, {
+      withCredentials: true
     })
       .then((res) => {
         const data = res.data;
-
-        console.log("✅ 받은 color 값:", data.color); // 👈 여기 확인!
-
         setVo({
           id: id,
           title: data.title,
@@ -25,7 +25,7 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
           start_date: toDatetimeLocal(data.start_date),
           end_date: toDatetimeLocal(data.end_date),
           all_Day: data.all_Day || 'N',
-          color: data.color ?? '#3788d8'  // ✅ null 방어
+          color: data.color ?? '#3788d8'
         });
       })
       .catch(err => {
@@ -35,7 +35,7 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
       });
   }, [id, onClose]);
 
-  if (!vo) return null; // 데이터 로딩 중엔 표시 안함
+  if (!vo) return null;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -51,9 +51,7 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
       alert("제목은 필수 입력 항목입니다.");
       return;
     }
-  
-    console.log("전송할 데이터 확인:", vo);
-  
+
     axios.post(`http://localhost:8080/api/calendar/calendarUpdate.do?id=${id}`, vo, {
       withCredentials: true
     })
@@ -75,10 +73,21 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
       <h3>일정 수정</h3>
       <input name="title" placeholder="제목" value={vo.title} onChange={handleChange} /><br />
       <textarea name="content" placeholder="내용" value={vo.content} onChange={handleChange} /><br />
-      <input type="datetime-local" name="start_date" value={vo.start_date} onChange={handleChange} /> ~
-      <input type="datetime-local" name="end_date" value={vo.end_date} onChange={handleChange} /><br />
+      <input
+        type="datetime-local"
+        name="start_date"
+        value={vo.start_date}
+        onChange={handleChange}
+      /> ~
+      <input
+        type="datetime-local"
+        name="end_date"
+        value={vo.end_date}
+        min={vo.start_date}
+        onChange={handleChange}
+      /><br />
       <label>
-        하루 종일 
+        하루 종일
         <input
           type="checkbox"
           name="all_Day"
@@ -87,7 +96,7 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
         />
       </label><br />
       <label>
-        색상 선택 
+        색상 선택
         <input type="color" name="color" value={vo.color} onChange={handleChange} />
       </label><br /><br />
 

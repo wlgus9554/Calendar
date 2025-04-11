@@ -23,7 +23,7 @@ const Sidebar = () => {
 
   const handleMyPage = () => {
     if (loginEmail) {
-      navigate(`/view?email=${loginEmail}`);
+      navigate('/memberView', { state: { email: loginEmail } });
     } else {
       alert("로그인 정보가 없습니다.");
     }
@@ -75,7 +75,7 @@ const Sidebar = () => {
               <Link to="/calendar"><span className="icon">📅</span> {!collapsed && '캘린더'}</Link>
             </li>
             <li>
-              <button onClick={() => navigate('/list')} className="sidebar-btn">
+              <button onClick={() => navigate('/memberList')} className="sidebar-btn">
                 <span className="icon">📋</span> {!collapsed && '회원 목록'}
               </button>
             </li>

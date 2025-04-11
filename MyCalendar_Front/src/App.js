@@ -8,6 +8,8 @@ import MemberView from './Member/memberView';
 import MemberUpdate from './Member/memberUpdate';
 import MyCalendar from './Calendar/calendarList';
 import Layout from './Components/Layout';
+import PrivateRoute from "./Components/PrivateRoute";
+import RequireAdmin from './Components/RequireAdmin';
 
 function App() {
   return (
@@ -29,12 +31,14 @@ function App() {
             <Join />
           </Layout>
           } />
-        <Route path="/list" element={
-          <Layout>
-            <MemberList/>
-          </Layout>
+        <Route path="/memberList" element={
+          <RequireAdmin>
+            <Layout>
+              <MemberList/>
+            </Layout>
+          </RequireAdmin>
           } />
-        <Route path="/view" element={
+        <Route path="/memberView" element={
           <Layout>
             <MemberView />
           </Layout>
@@ -45,9 +49,11 @@ function App() {
           </Layout>
           } />
         <Route path='/calendar' element={
-          <Layout>
-            <MyCalendar/>
-          </Layout>
+           <PrivateRoute>
+            <Layout>
+              <MyCalendar/>
+            </Layout>
+           </PrivateRoute>
           } />
         {/* 필요한 페이지를 계속 추가 가능 */}
       </Routes>

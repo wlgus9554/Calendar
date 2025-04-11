@@ -74,8 +74,15 @@ const Calendar = () => {
       const response = await axios.post('http://localhost:8080/api/calendar/calendarWrite.do', newEvent, {
         withCredentials: true
       });
-
+  
       const savedEvent = response.data;
+  
+      if (!savedEvent.id) {
+        alert("등록은 성공했지만 id를 받을 수 없습니다.");
+        return;
+      }
+  
+      // 달력에 추가 (옵션)
       const calendarEvent = {
         id: savedEvent.id,
         title: savedEvent.title,
@@ -84,13 +91,25 @@ const Calendar = () => {
         allDay: savedEvent.all_day === 'Y',
         color: savedEvent.color
       };
-
+  
       setEvents([...events, calendarEvent]);
       setShowWrite(false);
+  
+      // ✅ 등록 후 바로 상세조회 열기
+      const detailRes = await axios.get(`http://localhost:8080/api/calendar/calendarView.do?id=${savedEvent.id}`, {
+        withCredentials: true
+      });
+  
+      setSelectedEvent(detailRes.data);
+      setSelectedId(savedEvent.id);
+      setShowModal(true);
+  
     } catch (error) {
       console.error("일정 등록 실패", error);
+      alert("등록 실패");
     }
   };
+  
 
   const handleOpenUpdate = () => {
     setUpdateOpen(true);
