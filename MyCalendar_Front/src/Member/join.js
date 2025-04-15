@@ -38,7 +38,9 @@ const Join = () => {
     formData.append("gender", gender);
     formData.append("tel", tel);
     formData.append("city", city);
-    formData.append("imageFile", image || new Blob([], { type: 'image/png' }), "empty.png");
+    if (image) {
+      formData.append("imageFile", image);
+    }
 
     try {
       await axios.post("http://localhost:8080/api/member/join.do", formData, {

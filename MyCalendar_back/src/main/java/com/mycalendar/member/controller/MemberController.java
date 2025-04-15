@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -83,16 +84,17 @@ public class MemberController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("아이디 또는 비밀번호가 올바르지 않습니다.");
 		}
 
-		// 탈퇴한 계정이 접속을 시도 시 
-		if ("탈퇴".equals(loginVO.getStatus())) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("탈퇴한 계정입니다.");
-		}
+		 // ✅ DB에서 가져온 loginVO로 탈퇴 상태 확인
+	    if ("탈퇴".equals(loginVO.getStatus())) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이미 탈퇴한 회원입니다.");
+	    }
 
 		// ✅ 로그인 성공 시 마지막 로그인 시간 갱신
 		service.updateLastLogin(loginVO.getEmail());
 
 		// 세션에 이메일 저장
 		session.setAttribute("email", loginVO.getEmail());
+		session.setAttribute("grade", loginVO.getGrade()); // ✅ 요거 추가!
 		return ResponseEntity.ok(loginVO);
 	}
 
@@ -126,35 +128,49 @@ public class MemberController {
 		return new ResponseEntity<>(service.view(email), HttpStatus.OK);
 	}
 
-	// --- 회원 정보 수정 처리 ------------------------------------
 	@PostMapping("/memberUpdate.do")
-	public ResponseEntity<MemberVO> memberUpdate(MemberVO vo, @RequestParam("imageFile") MultipartFile imageFile)
-			throws Exception {
-		log.info("----------[ memberUpdate.do ] -----------");
-		
-		log.info("등급: " + vo.getGrade());
-		log.info("상태: " + vo.getStatus());
+	public ResponseEntity<MemberVO> memberUpdate(
+	        MemberVO vo,
+	        @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+	        @RequestParam(value = "image", required = false) String imageName,
+	        HttpSession session
+	) throws Exception {
+	    log.info("----------[ memberUpdate.do ] -----------");
 
-		if (imageFile == null || imageFile.isEmpty()) {
-			log.warn("📛 이미지 파일이 null 또는 비어 있음!");
-		} else {
-			log.info("✅ 이미지 파일명: " + imageFile.getOriginalFilename());
-		}
+	    String sessionGrade = (String) session.getAttribute("grade");
+	    boolean isAdmin = "admin".equals(sessionGrade);
 
-		if (imageFile != null && !imageFile.isEmpty()) {
-			String fileName = imageFile.getOriginalFilename();
-			String fullPath = path + fileName;
-			vo.setImage(fullPath); // ✅ 이거 꼭 해줘야 DB에 들어감!
-			log.info("✅ 이미지 파일명: " + fullPath);
-		} else {
-			vo.setImage(path + "default.jpg");
-			log.warn("기본 이미지로 셋팅");
-		}
+	    // ✅ 일반 사용자일 경우 비밀번호 확인
+	    if (!isAdmin) {
+	        MemberVO db = service.getMemberByEmail(vo.getEmail());
+	        if (db == null || !db.getPassword().equals(vo.getPassword())) {
+	            log.warn("❌ 비밀번호 불일치로 수정 거부");
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+	        }
+	    }
 
-		service.memberUpdate(vo);
+	    log.info("등급: " + vo.getGrade());
+	    log.info("상태: " + vo.getStatus());
 
-		return ResponseEntity.ok(vo); // 회원가입한 회원 정보
+	    if (imageFile != null && !imageFile.isEmpty()) {
+	        String fileName = imageFile.getOriginalFilename();
+	        String fullPath = path + fileName;
+	        vo.setImage(fullPath); // 새로 업로드된 이미지 저장
+	        log.info("✅ 새 이미지 등록됨: " + fullPath);
+	    } else {
+	        if (imageName != null && !imageName.isEmpty()) {
+	            vo.setImage(imageName); // 기존 이미지 유지
+	            log.info("✅ 기존 이미지 유지: " + imageName);
+	        } else {
+	            vo.setImage(path + "default.jpg"); // 아무것도 없을 때만 default.jpg
+	            log.warn("📛 기존 이미지 정보도 없어서 default.jpg로 셋팅");
+	        }
+	    }
+
+	    service.memberUpdate(vo);
+	    return ResponseEntity.ok(vo);
 	}
+
 
 	// 비밀번호 체크(수정)
 	@PostMapping("/checkPassword.do")
@@ -179,6 +195,23 @@ public class MemberController {
 	    vo.setStatus("탈퇴");
 	    service.memberDelete(vo);
 	    return "success";
+	}
+	
+	@DeleteMapping("/deleteUser.do")
+	public ResponseEntity<?> deleteMember(@RequestParam("email") String email, HttpSession session) {
+	   
+		String grade = (String) session.getAttribute("grade");
+	    
+	    if (!"admin".equals(grade)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+	    }
+
+	    try {
+	        service.deleteUser(email);  // ✅ 서비스에서 삭제 처리
+	        return ResponseEntity.ok("삭제 완료");
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("삭제 중 오류 발생");
+	    }
 	}
 
 }

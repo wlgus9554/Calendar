@@ -33,8 +33,6 @@ public class CalendarController {
 	// 캘린더 화면(리스트)
 	@GetMapping("/calendarList.do")
 	public ResponseEntity<?> CalendarList(HttpSession session) throws Exception {
-		//String email = (String) session.getAttribute("email");
-
 		
 		String email = (String) session.getAttribute("email");
 		if (email == null) {
@@ -44,7 +42,6 @@ public class CalendarController {
 		// String email = "test@naver.com"; 
 		// http://localhost:8080/api/calendar/calendarList.do - url로 백앤드 정상 작동 확인을 위한 하드코딩
 		
-		// List<CalendarVO> calendarList = service.CalendarList(email);
 		return ResponseEntity.ok(service.CalendarList(email));
 	}
 	
@@ -66,8 +63,6 @@ public class CalendarController {
 		} else {
 		    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("접근 권한이 없습니다.");
 		}
-
-		
 		return ResponseEntity.ok(vo);
 	}
 	

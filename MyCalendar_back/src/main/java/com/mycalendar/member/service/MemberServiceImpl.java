@@ -84,5 +84,12 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 
+	@Override
+	public Integer deleteUser(String email) {
+		// TODO Auto-generated method stub
+		return mapper.deleteUser(email);
+	}
+
+
 
 }

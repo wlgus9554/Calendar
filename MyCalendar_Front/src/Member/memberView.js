@@ -70,6 +70,22 @@ function MemberView() {
     }
   };
 
+  const handleForceDelete = async () => {
+    if (!window.confirm("정말로 이 회원을 완전히 삭제하시겠습니까?")) return;
+  
+    try {
+      await axios.delete(`http://localhost:8080/api/member/deleteUser.do?email=${targetEmail}`, {
+        withCredentials: true
+      });
+      alert("✅ 회원이 완전히 삭제되었습니다.");
+      navigate("/memberList");
+    } catch (err) {
+      console.error(err);
+      alert("❌ 삭제 실패");
+    }
+  };
+  
+
   const handleDeleteMember = async () => {
     if (!inputPassword) {
       alert("비밀번호를 입력해주세요.");
@@ -132,16 +148,37 @@ function MemberView() {
           </table>
 
           <div style={{ marginTop: "20px" }}>
-            <button onClick={() => { setMode("edit"); setShowPasswordPrompt(true); }}>
-              ✏ 수정하기
-            </button>
-            <button
-              onClick={() => { setMode("delete"); setShowPasswordPrompt(true); }}
-              style={{ marginLeft: "10px", color: "red" }}
-            >
-              🗑 탈퇴하기
-            </button>
+            {isAdmin ? (
+              // ✅ 관리자는 비밀번호 입력 없이 바로 이동
+              <button
+                onClick={() => navigate("/memberUpdate", { state: { email: targetEmail, password: "" } })}
+              >
+                ✏ 수정하기
+              </button>
+            ) : (
+              // ✅ 일반 사용자는 기존 방식대로 비밀번호 확인
+              <button onClick={() => { setMode("edit"); setShowPasswordPrompt(true); }}>
+                ✏ 수정하기
+              </button>
+            )}
+
+            {!isAdmin ? (
+              <button
+                onClick={() => { setMode("delete"); setShowPasswordPrompt(true); }}
+                style={{ marginLeft: "10px", color: "red" }}
+              >
+                🗑 탈퇴하기
+              </button>
+            ) : (
+              <button
+                onClick={handleForceDelete}
+                style={{ marginLeft: "10px", color: "crimson", fontWeight: "bold" }}
+              >
+                🚨 탈퇴처리
+              </button>
+            )}
           </div>
+
 
           {showPasswordPrompt && (
             <div style={{ marginTop: '15px' }}>

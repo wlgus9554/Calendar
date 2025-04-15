@@ -19,5 +19,5 @@ public class CalendarVO {
     private String color; // 일정 색(구분)
     private String email; // 로그인 한 사용자(작성자)
     private String all_Day; // Oracle에서는 BOOLEAN이 없어서 문자열로 처리 ("true"/"false")
-    private Date reg_date; // 일정 등록일
+    private Date write_date; // 일정 등록일
 }

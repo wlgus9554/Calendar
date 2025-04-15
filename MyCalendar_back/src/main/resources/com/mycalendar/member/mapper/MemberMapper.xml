@@ -48,22 +48,25 @@
 	</insert>
 	
 	<update id="memberUpdate" parameterType="com.mycalendar.member.vo.MemberVO">
-	  update member
-	  <set>
-	    nickName = #{nickName},
-	    name = #{name},
-	    tel = #{tel},
-	    city = #{city},
-	    image = #{image},
-	    <if test="grade != null">
-	      grade = #{grade},
-	    </if>
-	    <if test="status != null">
-	      status = #{status}
-	    </if>
-	  </set>
-	  where email = #{email} and password = #{password}
-	</update>
+  update member
+  <set>
+    nickName = #{nickName},
+    name = #{name},
+    tel = #{tel},
+    city = #{city},
+    image = #{image},
+    <if test="grade != null">
+      grade = #{grade},
+    </if>
+    <if test="status != null">
+      status = #{status}
+    </if>
+  </set>
+  where email = #{email}
+  <if test="grade == null"> <!-- 일반 사용자일 경우만 비번 필요 -->
+    and password = #{password}
+  </if>
+</update>
 
 	
 	<!-- 로그인한 아이디에 비밀번호가 일치하는지 확인하기 위한 쿼리문-->
@@ -93,6 +96,7 @@
 	    SELECT * FROM member WHERE email = #{email}
 	</select>
 
-
-
+	<delete id="deleteUser" parameterType="String">
+		Delete from member where email = #{email}	
+	</delete>
 </mapper>

@@ -11,7 +11,7 @@
         and (m.email = c.email)
     </select>
     <select id="CalendarView" resultType="com.mycalendar.calendar.vo.CalendarVO" parameterType="int">
-    	select id, title, content, start_date, end_date, reg_date, all_day, email, color
+    	select id, title, content, start_date, end_date, write_date, all_day, email, color
 		    from calendar
 		        where id = #{id}
     </select>

@@ -29,10 +29,10 @@ function MemberUpdate() {
   const { email, password } = location.state || {};
 
   useEffect(() => {
-    if (!email || !password) {
+    if (!email || (!isAdmin && !password)) {
       alert("잘못된 접근입니다.");
       return navigate("/");
-    }
+    }    
 
     axios.get(`http://localhost:8080/api/member/view.do?email=${email}&password=${password}`)
       .then(res => {
@@ -63,20 +63,29 @@ function MemberUpdate() {
     formData.append("nickName", vo.nickName);
     formData.append("tel", vo.tel);
     formData.append("city", vo.city);
-    formData.append("password", password);
-
+  
+    // ✅ 관리자 아니면 password도 포함
+    if (!isAdmin) {
+      formData.append("password", password);
+    }
+  
     if (isAdmin) {
       formData.append("grade", vo.grade);
       formData.append("status", vo.status);
     }
-
-    formData.append("imageFile", imageFile || new Blob());
-
+  
+    if (imageFile) {
+      formData.append("imageFile", imageFile);
+    } else {
+      formData.append("image", vo.image);
+    }
+  
     try {
       await axios.post("http://localhost:8080/api/member/memberUpdate.do", formData, {
         headers: {
           "Content-Type": "multipart/form-data"
-        }
+        },
+        withCredentials: true  // ✅ 세션 쿠키 유지 (중요!)
       });
       alert("회원 정보가 수정되었습니다.");
       navigate('/memberView', { state: { email } });
@@ -85,6 +94,7 @@ function MemberUpdate() {
       console.error(err);
     }
   };
+  
 
   return (
     <div className="update-container">

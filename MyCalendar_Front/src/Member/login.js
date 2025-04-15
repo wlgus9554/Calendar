@@ -5,7 +5,6 @@ import './Login.css';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
 
   const handleLogin = async () => {
     try {
@@ -21,11 +20,16 @@ const Login = () => {
       sessionStorage.setItem("loginUser", JSON.stringify(response.data));
       sessionStorage.setItem("email", loginUser.email);
 
-      alert(`${response.data.nickName}님 로그인 성공!`);
+      alert(`${loginUser.nickName}님 로그인 성공!`);
       window.location.href = "/";
     } catch (err) {
-      console.error(err);
-      setError("아이디 또는 비밀번호가 올바르지 않습니다.");
+      if (err.response && err.response.status === 401) {
+        // 서버에서 전달한 에러 메시지를 alert으로 출력
+        alert(err.response.data);
+      } else {
+        alert("❌ 로그인 중 알 수 없는 오류가 발생했습니다.");
+        console.error(err);
+      }
     }
   };
 
@@ -33,6 +37,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-box">
         <h2>🔐 로그인</h2>
+
         <label>이메일</label>
         <input
           type="text"
@@ -50,7 +55,6 @@ const Login = () => {
         />
 
         <button onClick={handleLogin}>로그인</button>
-        {error && <p className="error">{error}</p>}
       </div>
     </div>
   );
