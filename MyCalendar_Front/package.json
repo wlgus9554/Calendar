@@ -2,6 +2,7 @@
   "name": "mycalendar_project",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://13.211.159.71",
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.17",
     "@fullcalendar/interaction": "^6.1.17",

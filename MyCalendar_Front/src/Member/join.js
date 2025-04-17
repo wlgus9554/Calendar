@@ -43,7 +43,7 @@ const Join = () => {
     }
 
     try {
-      await axios.post("http://localhost:8080/api/member/join.do", formData, {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/member/join.do`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("회원가입이 완료되었습니다!");

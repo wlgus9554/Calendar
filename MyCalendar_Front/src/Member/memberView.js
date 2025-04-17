@@ -39,7 +39,7 @@ function MemberView() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/member/view.do?email=${targetEmail}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member/view.do?email=${targetEmail}`);
         setView(response.data);
       } catch (err) {
         setError(err.message || "에러 발생");
@@ -54,7 +54,7 @@ function MemberView() {
 
   const handlePasswordCheck = async () => {
     try {
-      const res = await axios.post("http://localhost:8080/api/member/checkPassword.do", {
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/member/checkPassword.do`, {
         email: targetEmail,
         password: inputPassword,
       });
@@ -74,7 +74,7 @@ function MemberView() {
     if (!window.confirm("정말로 이 회원을 완전히 삭제하시겠습니까?")) return;
   
     try {
-      await axios.delete(`http://localhost:8080/api/member/deleteUser.do?email=${targetEmail}`, {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/member/deleteUser.do?email=${targetEmail}`, {
         withCredentials: true
       });
       alert("✅ 회원이 완전히 삭제되었습니다.");
@@ -95,7 +95,7 @@ function MemberView() {
     if (!window.confirm("정말 탈퇴하시겠습니까? 😢")) return;
 
     try {
-      const res = await axios.post("http://localhost:8080/api/member/memberDelete.do", {
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/member/memberDelete.do`, {
         email: targetEmail,
         password: inputPassword,
       });
@@ -123,7 +123,7 @@ function MemberView() {
       {memberView && (
         <div key={memberView.email}>
           <div className="member-profile">
-            <img src={`http://localhost:8080${memberView.image}`} alt="프로필" className="member-image" />
+            <img src={`${process.env.REACT_APP_API_BASE_URL}${memberView.image}`} alt="프로필" className="member-image" />
           </div>
 
           <table className="member-table">

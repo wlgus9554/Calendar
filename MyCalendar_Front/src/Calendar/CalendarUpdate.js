@@ -13,7 +13,7 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
   const [vo, setVo] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/calendar/calendarView.do?id=${id}`, {
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarView.do?id=${id}`, {
       withCredentials: true
     })
       .then((res) => {
@@ -52,7 +52,7 @@ const CalendarUpdate = ({ id, onClose, onUpdate }) => {
       return;
     }
 
-    axios.post(`http://localhost:8080/api/calendar/calendarUpdate.do?id=${id}`, vo, {
+    axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarUpdate.do?id=${id}`, vo, {
       withCredentials: true
     })
       .then(() => {

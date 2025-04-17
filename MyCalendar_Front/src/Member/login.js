@@ -9,7 +9,7 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       const response = await axios.post(
-        'http://localhost:8080/api/member/login',
+        `${process.env.REACT_APP_API_BASE_URL}/api/member/login`,
         { email, password },
         { withCredentials: true }
       );

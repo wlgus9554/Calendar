@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: ./MyCalendar_Front
+    ports:
+      - "80:80"
+
+  backend:
+    build:
+      context: ./MyCalendar_back
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env

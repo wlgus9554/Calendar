@@ -47,12 +47,22 @@ public class WeatherController {
     // 단기 + 중기 = 통합
     @GetMapping("/weekly")
     public ResponseEntity<Map<String, Object>> getWeeklyWeather(
-        @RequestParam(name = "email", required = false) String email,
-        @RequestParam(name = "city", required = false) String city
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "city", required = false) String city
     ) {
-        if (email != null) {
-            WeatherVO region = weatherService.findRegionbyWeather(email);
-            if (region == null) return ResponseEntity.notFound().build();
+        try {
+            WeatherVO region = null;
+
+            if (email != null) {
+                region = weatherService.findRegionbyWeather(email);
+            } else if (city != null) {
+                region = weatherService.findRegionByCity(city);
+            }
+
+            if (region == null) {
+                System.out.println("[❌] 지역 정보를 찾을 수 없습니다. email: " + email + ", city: " + city);
+                return ResponseEntity.status(204).body(Map.of("message", "날씨 정보 없음")); // 204 No Content
+            }
 
             List<ShortTermWeatherVO> shortList = apiService.getShortTermWeather(region.getNx(), region.getNy());
             List<MidTermWeatherVO> midList = apiService.getMidTermWeather(region.getReg_code());
@@ -60,23 +70,13 @@ public class WeatherController {
             Map<String, Object> result = new HashMap<>();
             result.put("shortTerm", shortList);
             result.put("midTerm", midList);
+
             return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // 콘솔에 에러 출력
+            return ResponseEntity.internalServerError().body(Map.of("error", "서버 내부 오류 발생"));
         }
-
-        if (city != null) {
-            WeatherVO region = weatherService.findRegionByCity(city);
-            if (region == null) return ResponseEntity.notFound().build();
-
-            List<ShortTermWeatherVO> shortList = apiService.getShortTermWeather(region.getNx(), region.getNy());
-            List<MidTermWeatherVO> midList = apiService.getMidTermWeather(region.getReg_code());
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("shortTerm", shortList);
-            result.put("midTerm", midList);
-            return ResponseEntity.ok(result);
-        }
-
-        return ResponseEntity.badRequest().body(Map.of("error", "email 또는 city 파라미터 필요"));
     }
     
     @GetMapping("/cities")

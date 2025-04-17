@@ -28,7 +28,7 @@ const Calendar = () => {
   console.log("📩 Calendar.js - loggedInEmail:", loggedInEmail); // ✅ 로그 추가
 
   const loadEvents = () => {
-    fetch("http://localhost:8080/api/calendar/calendarList.do", {
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarList.do`, {
       method: "GET",
       credentials: "include"
     })
@@ -52,7 +52,7 @@ const Calendar = () => {
 
   const handleEventClick = (info) => {
     const id = info.event.id;
-    fetch(`http://localhost:8080/api/calendar/calendarView.do?id=${id}`, {
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarView.do?id=${id}`, {
       credentials: 'include'
     })
       .then(res => res.ok ? res.json() : Promise.reject("상세 조회 실패"))
@@ -71,7 +71,7 @@ const Calendar = () => {
 
   const handleAddEvent = async (newEvent) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/calendar/calendarWrite.do', newEvent, {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarWrite.do`, newEvent, {
         withCredentials: true
       });
   
@@ -96,7 +96,7 @@ const Calendar = () => {
       setShowWrite(false);
   
       // ✅ 등록 후 바로 상세조회 열기
-      const detailRes = await axios.get(`http://localhost:8080/api/calendar/calendarView.do?id=${savedEvent.id}`, {
+      const detailRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarView.do?id=${savedEvent.id}`, {
         withCredentials: true
       });
   

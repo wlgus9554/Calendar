@@ -34,7 +34,7 @@ function MemberUpdate() {
       return navigate("/");
     }    
 
-    axios.get(`http://localhost:8080/api/member/view.do?email=${email}&password=${password}`)
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member/view.do?email=${email}&password=${password}`)
       .then(res => {
         const data = res.data;
         setVo({
@@ -81,7 +81,7 @@ function MemberUpdate() {
     }
   
     try {
-      await axios.post("http://localhost:8080/api/member/memberUpdate.do", formData, {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/member/memberUpdate.do`, formData, {
         headers: {
           "Content-Type": "multipart/form-data"
         },

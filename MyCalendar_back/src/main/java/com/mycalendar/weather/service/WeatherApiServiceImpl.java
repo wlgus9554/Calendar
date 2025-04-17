@@ -11,24 +11,22 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class WeatherApiServiceImpl implements WeatherApiService {
 
     @Value("${weather.api.key}")
     private String weatherApiKey; // 중기예보용 키
-    
+
     @Value("${short.api.key}")
     private String shortApiKey; // 단기예보용 키
 
-    // 중기예보 
+    // ✅ 중기예보
     @Override
     public List<MidTermWeatherVO> getMidTermWeather(String regCode) {
         List<MidTermWeatherVO> result = new ArrayList<>();
@@ -52,7 +50,7 @@ public class WeatherApiServiceImpl implements WeatherApiService {
                 for (int d = 3; d <= 7; d++) {
                     MidTermWeatherVO vo = new MidTermWeatherVO();
                     vo.setDate(getTargetDate(d)); // 오늘 + d일
-                    vo.setWeather(getTagValue("wf" + d + "Am", el)); // 오전 날씨만 예시
+                    vo.setWeather(getTagValue("wf" + d + "Am", el)); // 오전 날씨만
                     result.add(vo);
                 }
             }
@@ -63,29 +61,20 @@ public class WeatherApiServiceImpl implements WeatherApiService {
         return result;
     }
 
-    private String getTargetDate(int dayOffset) {
-        return LocalDate.now().plusDays(dayOffset).toString(); // YYYY-MM-DD
-    }
-
-    private String getLatestBaseTime() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime base = now.getHour() < 18 ? now.minusDays(1) : now;
-        return base.format(DateTimeFormatter.ofPattern("yyyyMMdd1800"));
-    }
-
-    private String getTagValue(String tag, Element e) {
-        NodeList nodeList = e.getElementsByTagName(tag);
-        if (nodeList.getLength() == 0) return null;
-        return nodeList.item(0).getTextContent();
-    }
-    
+    // ✅ 단기예보
     @Override
     public List<ShortTermWeatherVO> getShortTermWeather(int nx, int ny) {
-    	
         List<ShortTermWeatherVO> result = new ArrayList<>();
 
-        String baseDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String baseTime = "0500"; // 안정적인 기준 시간
+        LocalDateTime now = LocalDateTime.now();
+        String baseTime = getLatestShortTermBaseTime(now);
+        String baseDate;
+
+        if (now.getHour() < 2 || (now.getHour() == 2 && now.getMinute() < 10)) {
+            baseDate = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        } else {
+            baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        }
 
         String url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
                    + "?serviceKey=" + shortApiKey
@@ -95,6 +84,9 @@ public class WeatherApiServiceImpl implements WeatherApiService {
                    + "&nx=" + nx
                    + "&ny=" + ny;
 
+        System.out.println("[단기예보 요청] base_date=" + baseDate + ", base_time=" + baseTime);
+        System.out.println("[단기예보 URL] " + url);
+
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -102,8 +94,6 @@ public class WeatherApiServiceImpl implements WeatherApiService {
             doc.getDocumentElement().normalize();
 
             NodeList items = doc.getElementsByTagName("item");
-
-            // 날짜+시간 기준으로 데이터를 하나로 묶기 위한 Map
             Map<String, ShortTermWeatherVO> map = new LinkedHashMap<>();
 
             for (int i = 0; i < items.getLength(); i++) {
@@ -122,15 +112,9 @@ public class WeatherApiServiceImpl implements WeatherApiService {
                 vo.setTime(fcstTime);
 
                 switch (category) {
-                    case "TMP":
-                        vo.setTemperature(fcstValue);
-                        break;
-                    case "SKY":
-                        vo.setSky(fcstValue);
-                        break;
-                    case "POP":
-                        vo.setPrecipitation(fcstValue);
-                        break;
+                    case "TMP": vo.setTemperature(fcstValue); break;
+                    case "SKY": vo.setSky(fcstValue); break;
+                    case "POP": vo.setPrecipitation(fcstValue); break;
                 }
             }
 
@@ -142,10 +126,40 @@ public class WeatherApiServiceImpl implements WeatherApiService {
 
         return result;
     }
-    
-    private String formatDate(String yyyymmdd) {
-        return LocalDate.parse(yyyymmdd, DateTimeFormatter.ofPattern("yyyyMMdd"))
-                        .toString(); // yyyy-MM-dd
+
+    // 🔧 공통 유틸 함수들
+    private String getTagValue(String tag, Element e) {
+        NodeList nodeList = e.getElementsByTagName(tag);
+        if (nodeList.getLength() == 0) return null;
+        return nodeList.item(0).getTextContent();
     }
 
+    private String getTargetDate(int dayOffset) {
+        return LocalDate.now().plusDays(dayOffset).toString();
+    }
+
+    private String getLatestBaseTime() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = now.getHour() < 18 ? now.minusDays(1) : now;
+        return base.format(DateTimeFormatter.ofPattern("yyyyMMdd1800"));
+    }
+
+    private String getLatestShortTermBaseTime(LocalDateTime now) {
+        int hour = now.getHour();
+        int minute = now.getMinute();
+
+        if (hour < 2 || (hour == 2 && minute < 10)) return "2300";
+        if (hour < 5 || (hour == 5 && minute < 10)) return "0200";
+        if (hour < 8 || (hour == 8 && minute < 10)) return "0500";
+        if (hour < 11 || (hour == 11 && minute < 10)) return "0800";
+        if (hour < 14 || (hour == 14 && minute < 10)) return "1100";
+        if (hour < 17 || (hour == 17 && minute < 10)) return "1400";
+        if (hour < 20 || (hour == 20 && minute < 10)) return "1700";
+        if (hour < 23 || (hour == 23 && minute < 10)) return "2000";
+        return "2300";
+    }
+
+    private String formatDate(String yyyymmdd) {
+        return LocalDate.parse(yyyymmdd, DateTimeFormatter.ofPattern("yyyyMMdd")).toString();
+    }
 }

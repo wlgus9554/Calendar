@@ -5,7 +5,7 @@ const CalendarDelete = ({ id, onClose, onDelete }) => {
   const [title, setTitle] = useState('');
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/calendar/calendarView.do?id=${id}`, {
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarView.do?id=${id}`, {
       withCredentials: true
     })
       .then(res => {
@@ -19,7 +19,7 @@ const CalendarDelete = ({ id, onClose, onDelete }) => {
   }, [id, onClose]);
 
   const handleDelete = () => {
-    axios.post(`http://localhost:8080/api/calendar/calendarDelete.do?id=${id}`, {
+    axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/calendar/calendarDelete.do?id=${id}`, {
       withCredentials: true
     })
       .then(() => {

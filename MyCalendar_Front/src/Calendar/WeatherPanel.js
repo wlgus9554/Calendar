@@ -9,7 +9,7 @@ const WeatherPanel = ({ email }) => {
 
   const fetchWeather = async (params) => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/weather/weekly`, { params });
+      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/weather/weekly`, { params });
 
       const shortList = res.data.shortTerm || [];
       const midList = res.data.midTerm || [];
@@ -23,7 +23,8 @@ const WeatherPanel = ({ email }) => {
 
       weekDates.forEach(date => {
         preferredTimes.some(time => {
-          const match = shortList.find(s => s.date === date && s.time === time);
+          const match = shortList.find(s => s.date === date && preferredTimes.includes(s.time))
+            || shortList.find(s => s.date === date); // 👈 추가
           if (match) {
             if (!merged[date]) merged[date] = { date };
             merged[date].sky = match.sky;
@@ -33,7 +34,7 @@ const WeatherPanel = ({ email }) => {
         });
 
         const mid = midList.find(m => m.date === date);
-        if (mid && mid.weather) {
+        if (mid && mid.weather && mid.weather !== "null") {
           if (!merged[date]) merged[date] = { date };
           merged[date].midWeather = mid.weather;
         }
@@ -51,16 +52,14 @@ const WeatherPanel = ({ email }) => {
     }
   };
 
-  // ✅ 초기 로그인 사용자의 지역 날씨
   useEffect(() => {
     if (email) {
       fetchWeather({ email });
     }
   }, [email]);
 
-  // ✅ 지역 목록 불러오기 (weather 테이블의 city만)
   useEffect(() => {
-    axios.get("http://localhost:8080/api/weather/cities")
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/weather/cities`)
       .then(res => {
         setCityList(res.data);
       })
@@ -82,12 +81,12 @@ const WeatherPanel = ({ email }) => {
       case "1": return "☀️";
       case "3": return "⛅";
       case "4": return "☁️";
-      default: return null;
+      default: return "☁️";
     }
   };
 
   const getMidWeatherEmoji = (text) => {
-    if (!text) return "☁️";
+    if (!text || text === "null") return "☁️";
     if (text.includes("맑")) return "☀️";
     if (text.includes("구름")) return "⛅";
     if (text.includes("흐")) return "☁️";
@@ -120,9 +119,14 @@ const WeatherPanel = ({ email }) => {
     }
   };
 
+  const getWeatherLabel = (sky, mid) => {
+    if (sky) return getSkyText(sky);
+    if (!mid || mid === "null") return "날씨 정보 없음";
+    return mid;
+  };
+
   return (
     <>
-      {/* 드롭다운 UI */}
       <div style={{ marginBottom: '1rem' }}>
         <select
           value={selectedCity}
@@ -137,15 +141,16 @@ const WeatherPanel = ({ email }) => {
       </div>
 
       <div style={{ width: '100%', maxWidth: '420px', padding: '1rem', borderLeft: '2px solid #ddd' }}>
-      <h3 style={{ marginBottom: '1.2rem' }}>
-        📅 <strong>{selectedCity || "내 지역"}의 일주일간 날씨</strong>
-      </h3>
-
+        <h3 style={{ marginBottom: '1.2rem' }}>
+          📅 <strong>{selectedCity || "내 지역"}의 일주일간 날씨</strong>
+        </h3>
 
         {mergedData.map((item, idx) => {
           const weekday = getWeekday(item.date);
-          const emoji = item.sky ? getSkyEmoji(item.sky) : getMidWeatherEmoji(item.midWeather);
-          const label = item.sky ? getSkyText(item.sky) : item.midWeather || '날씨 정보 없음';
+          const emoji = item.sky
+            ? getSkyEmoji(item.sky)
+            : getMidWeatherEmoji(item.midWeather && item.midWeather !== "null" ? item.midWeather : null);
+          const label = getWeatherLabel(item.sky, item.midWeather);
 
           return (
             <div

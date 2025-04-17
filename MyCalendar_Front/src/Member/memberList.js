@@ -14,7 +14,7 @@ function MemberList() {
     const fetchList = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:8080/api/member/memberList.do');
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member/memberList.do`);
         setList(response.data);
       } catch (err) {
         setError(err.message || '에러 발생');
